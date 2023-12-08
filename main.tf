@@ -70,10 +70,24 @@ resource "aws_instance" "frontend" {
   }
 }
 
+#Creating elistic IP for ec2
+# --------------------------
+
+
+resource "aws_eip" "frontend" {
+  instance = aws_instance.frontend.id
+  domain   = "vpc"
+
+  tags = {
+    Name    = "${var.project_name}-${var.project_env}-frontend"
+    Project = var.project_env
+    owner   = var.project_owner
+  }
+}
 resource "aws_route53_record" "frontend" {
-  zone_id = var.hosted_zone_id
+  zone_id = data.aws_route53_zone.frontend.id
   name    = "${var.hostname}.${var.domain_name}"
   type    = "A"
   ttl     = 300
-  records = [aws_instance.frontend.public_ip]
+  records = [aws_eip.frontend.public_ip]
 }
